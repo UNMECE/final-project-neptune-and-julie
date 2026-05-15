@@ -172,11 +172,11 @@ void AcequiaManager::initializeRegions(){
 //METHOD A (use this first)
 //setting fixed values at execution time
 //students can read the AcequiaManager to view the initial values and build their logic based on this
-/*	
+	
 		regions.push_back(new Region("North", 53.0, 49.5, 55, false, false,0,0));
 		regions.push_back(new Region("South", 40.0, 39, 45 ,true, false,0,0));
 		regions.push_back(new Region("East", 25, 26, 50, false, true,0,0));
-*/	
+// comment out by Julie so values dont change 
 
 //Method B (this works fine too, but students will not be able to see the random values until after they execute their program)
 //setting random initial values for each region waterlevels at execution time
