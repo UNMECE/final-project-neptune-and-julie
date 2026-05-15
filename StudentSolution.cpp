@@ -91,45 +91,150 @@ Setting multiple canals at a particular time instance
 
 void solveProblems(AcequiaManager& manager)
 {
-	auto canals = manager.getCanals();
-	while(!manager.isSolved && manager.hour!=manager.SimulationMax)
-	{
-	//Students will implement this function to solve the probelms
-	//Example: Adjust canal flow rates and directions
-		if(manager.hour==1)
-		{
-			canals[0]->setFlowRate(0.1);
-			canals[0]->toggleOpen(true);
-			canals[1]->setFlowRate(0.2);
-			canals[1]->toggleOpen(true);
-		}
-		else if(manager.hour==3)
-		{
-			canals[0]->toggleOpen(false);
-			canals[1]->toggleOpen(false);
-		}
-	//student may add any necessary functions or check on the progress of each region as the simulation moves forward. 
-	//The manager takes care of updating the waterLevels of each region and waterSource while the student is just expected
-	//to solve how to address the state of each region
 
-		
-		manager.nexthour();
-	}
+auto canals = manager.getCanals();
+auto regions = manager.getRegions();
+
+// helper to get region by name such as north south etc
+
+auto getRegion = [&](std::string name) {
+	for (auto r : regions)
+		if (r->name == name)
+			return r;
+		return regions[0]; // should never hit (backup)
+};
+
+Region* North = getRegion("North");
+Region* South = getRegion("South");
+Region* East = getRegion("East");
+
+// canal mapping
+
+Canal* A = canals[0]; // north to south
+Canal* B = canals[1]; // south to east
+Canal* C = canals[2]; // north to east
+Canal* D = canals[3]; // east to north
+
+while (!manager.isSolved && manager.hour < manager.SimulationMax)
+{
+	// compute deficits and surpluses
+	double deficitN = North->waterNeed - North->waterLevel;
+	double deficitS = South->waterNeed - South->waterLevel;
+	double deficitE = East->waterNeed - East->waterLevel;
+
+	double surplusN = North->waterLevel - North->waterNeed;
+	double surplusS = South->waterLevel - South->waterNeed;
+	double surplusE = East->waterLevel - East->waterNeed;
+
+	if (deficitN <= 0 && deficitS <= 0 && deficitE <= 0)
+		break;
+
+	// identify region with largest deficit
+
+	Region* dst = North;
+	double maxDef = deficitN;
+
+	if (deficitS > maxDef){
+		dst = South;
+		maxDef = deficitS;
+}
+	if (deficitE > maxDef){
+		dst = East;
+		maxDef = deficitE;
+}
+
+	// identify region with largest surplus
+
+	Region* src = North;
+	double maxSur = surplusN;
+
+	if (surplusS > maxSur){
+		src = South;
+		maxSur = surplusS;
+}
+	if (surplusE > maxSur){
+		src = East;
+		maxSur = surplusE;
+}
+
+	// close all canals by default
+
+	A->toggleOpen(false);
+	B->toggleOpen(false);
+	C->toggleOpen(false);
+	D->toggleOpen(false);
+
+// safety rules for the canals
+	auto safeToSend = [&](Region* src, Region* dst){
+	if (src->waterLevel < 0.20 * src->waterCapacity) return false; // avoid drought
+	if (dst->waterLevel > 0.90 * dst->waterCapacity) return false; // avoid flood
+	return true;
+};
+
+double rate = 0.5;
+
+// Canal A
+
+if (src == North && dst == South && safeToSend(North, South)){
+	A->setFlowRate(rate);
+	A->toggleOpen(true);
+}
+
+// Canal B
+
+else if (src == South && dst == East && safeToSend(South, East)){
+	B->setFlowRate(rate);
+	B->toggleOpen(true);
+}
+
+// Canal C
+
+else if (src == North && dst == East && safeToSend(North, East)){
+	C->setFlowRate(rate);
+	C->toggleOpen(true);
+}
+
+// Canal D
+
+else if (src == East && dst == North && safeToSend(East, North)){
+	D->setFlowRate(rate);
+	D->toggleOpen(true);
 }
 
 
+// advance simulation
 
-/*In this solution, students can make functions that aid in identifying the best course of action for moving
-water resources. They can set conditions that then work on the canal vectors based on the information reported
+manager.nexthour();
 
-This can help in optimizing solutions for dynamic constraints such as weather (rain, or dried up waterSources) and
-make the solution to the problem more abstract, allowing the logic and algorithm to be the sole priority of the student
-while the computation is left for the Acequia Manager
+manager.solved();
+	}
 
-This would be the perfect opportunity to identify the tools learned from ECE 231L such as:
-data structures (stacks, queues, trees(?)), templates, vector class functions, etc... to aid in the algorithm solution
-*/
 
+// code to debug
+std::cout << "\n\n ----------------------------------\n";
+std::cout << "            FINAL SIMULATION STATE      \n";
+std::cout << " ---------------------------------------\n\n";
+std::cout << "Hour: " << manager.hour << "\n";
+std::cout << "North:  Level=" << North->waterLevel
+          << " Need=" << North->waterNeed
+          << "Capacity=" << North->waterCapacity << "\n";
+
+std::cout << "South:  Level=" << South->waterLevel
+          << " Need=" << South->waterNeed
+          << " Capacity=" << South->waterCapacity << "\n";
+
+std::cout << "East:  Level=" << East->waterLevel
+          << " Need=" << East->waterNeed
+          << " Capacity=" << East->waterCapacity << "\n";
+
+std::cout << "Canals: "
+          << " A(" << A->isOpen << ")"
+          << " B(" << B->isOpen << ")"
+          << " C(" << C->isOpen << ")"
+          << " D(" << D->isOpen << ")"
+          << "\n------------------------------------\n";
+
+}
 
 
 
