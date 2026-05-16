@@ -280,5 +280,10 @@ const std::vector<Region *> & AcequiaManager::getRegions() const{
 }
 
 const std::vector<Canal*> &AcequiaManager::getCanals() const{
+<<<<<<< HEAD
    return canals;
 }
+=======
+	return canals;
+}
+>>>>>>> 3845f27d41dd4119a366ddc71ed7b69c0f44bd31

@@ -1,6 +1,14 @@
 Max Simulation Time
+<<<<<<< HEAD
 100
 Random Values
 North,95,90,120
 South,92,90,179
 East,97,96,181
+=======
+89
+Random Values
+North,47,50,187
+South,96,58,131
+East,30,62,157
+>>>>>>> 3845f27d41dd4119a366ddc71ed7b69c0f44bd31

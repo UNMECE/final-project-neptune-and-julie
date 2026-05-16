@@ -77,6 +77,12 @@ class AcequiaManager{
 //simulation run function
 		void nexthour();
 		bool solved();
+		void nextHour();
+		void step();
+		void update();
+		void tick();
+		void simulateHour();
+		void runHour();
 
 		//Getters for students to access the simulation state
 		const std::vector<Region *> &getRegions() const;
