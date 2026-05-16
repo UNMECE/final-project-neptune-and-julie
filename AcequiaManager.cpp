@@ -6,22 +6,16 @@
 #include <sstream>
 #include <queue>
 
+using namespace std;
 
-//functions for the acequia manager
-
-
-//Region implementation
-//initializing a region component
-Region::Region(std::string name, double waterLevel, double waterNeed, double waterCapacity, bool isFlooded, bool isInDrought, int overflow, int drought)
+//IMPLEMENTING REGIONS ------------------------------
+//constructors
+Region::Region(string name, double waterLevel, double waterNeed, double waterCapacity, bool isFlooded, bool isInDrought, int overflow, int drought)
 	: name(name), waterLevel(waterLevel), waterNeed(waterNeed), waterCapacity(waterCapacity), isFlooded(isFlooded), isInDrought(isInDrought), overflow(overflow), drought(drought){}
 
-//Another constructor
-Region::Region (std::string name, double waterLevel, double waterNeed, double waterCapacity)
-	{
-		updateWaterLevel(0);
-	};
+Region::Region (std::string name, double waterLevel, double waterNeed, double waterCapacity) { updateWaterLevel(0); };
 
-//this function adjusts the changes to the waterLevel. This can be a negative for positive change.
+//function adjusts the changes to the waterLevel. This can be a negative for positive change.
 	void Region::updateWaterLevel(double change){
 		waterLevel += change;
 		if(waterLevel >= waterCapacity){ 	//condition for when waterLevel reaches waterCapacity
@@ -29,7 +23,7 @@ Region::Region (std::string name, double waterLevel, double waterNeed, double wa
 			isFlooded= true;
 			isInDrought = false;
 			overflow++;
-			//std::cout<<"Overflow in region, "<<name <<". Count increasing. Count: " <<overflow <<std::endl;
+			std::cout<<"Overflow in region, "<<name <<". Count increasing. Count: " <<overflow <<std::end;
 		}
 		else if(waterLevel < waterCapacity && waterLevel>waterNeed)
 		{
@@ -52,73 +46,25 @@ Region::Region (std::string name, double waterLevel, double waterNeed, double wa
 			isFlooded = false;
 		}
 	}
-	void Region::addWaterSource(WaterSource *source){
-		suppliedWater.push_back(source);
-	}
 
-
-//WaterSource implementation
-/*The waterSource class describes the different sources of water provided to each region based on geographic location
-and/or aquifers. These sources or water can provide water to several regions depending on whether there is an established
-connection from the source to the region. Most waterSources are assigned to the region based on location.*/
-
-WaterSource::WaterSource(std::string name, WaterSourceType type, double waterLevel)
-	:name(name), type(type), waterLevel(waterLevel){}
-
-/*void WaterSource::addSuppliedRegion(Region * region){
-	suppliedRegions.push_back(region);
-}
-*/
-//Proposed functions
-	//a function to update waterSource waterlevel
-void WaterSource::updateWaterLevel(double change)
-{
-	waterLevel += change;
-}
-// a funciton to add a canal to this waterSource 
-/*
-void WaterSource::addCanal(Canal *canal)
-{
-	canals.push_back(canal);
-}	
-*/
-
-
-//Canal implementations
-/*The canal class is intended to connect the regions and allow a region to send water resources to another region
-by opening the canals that connect the regions and set a specific FlowRate. 
- */
-
-//initializing a canal object
-Canal::Canal(std::string name, Region* sourceRegion, Region* destinationRegion, WaterSource* waterSource)
-	:name(name), sourceRegion(sourceRegion), destinationRegion(destinationRegion), waterSource(waterSource), flowRate(0.0), isOpen(false){}
+//IMPLEMENTING CANALS --------------------------------------
+//constructor
+Canal::Canal(std::string name, Region* sourceRegion, Region* destinationRegion)
+	:name(name), sourceRegion(sourceRegion), destinationRegion(destinationRegion), flowRate(0.0), isOpen(false){}
 
 //setting a flow rate for a canal object
-void Canal::setFlowRate(double rate){
-	flowRate = rate;
-
-}
+void Canal::setFlowRate(double rate) { flowRate = rate; }
 //setting a canal as open for water to flow
-void Canal::toggleOpen(bool open){
-	isOpen = open;
-}
+void Canal::toggleOpen(bool open){ isOpen = open; }
 
 //this function updates the water exchange between the regions and waterSources only if the canal is open. 
 void Canal::updateWater(int time)	//seconds
 {
-	if(!isOpen){
-		return;
-	}
-	if(flowRate>1)
-	{
-		std::cout<<"This flow rate is too high. Flow rate must be a value between 0 - 1. No changes to flowrate until it meets this criteria. " <<std::endl;
-		return;
-	}
-	double change=0;				//change is the amount in gallons being moved
-	for(int i = 0; i<time; i++)
-	{	
-		change += flowRate;			
-	}
+	if(!isOpen) return;
+   if(flowRate>1) return;
+
+	double change = 0;			//change is the amount in gallons being moved
+	for(int i = 0; i<time; i++) change += flowRate;
 	double amount;
 	amount = change/10000;			// current conversion to allow for readable change during the simulation
 //	amount = change/325851;			//conversion to acre-foots
@@ -126,172 +72,43 @@ void Canal::updateWater(int time)	//seconds
 	destinationRegion->updateWaterLevel(amount);	//this changes the waterLevel of the Destination region					
 }
 
-//AcequiaManager implementation
+//IMPLEMENTATION ACEQUIA MANAGER --------------------------------------
+//constructor and destructor
 AcequiaManager::AcequiaManager(){}
-//AcequiaManager destructor
 AcequiaManager::~AcequiaManager(){
 	for(auto region : regions)
 		delete region;
-	for(auto source : waterSources)
-		delete source;
 	for(auto canal : canals)
 		delete canal;
 }
 //initializing the Random parameters. using helper functions to initialize conditions
 void AcequiaManager::initializeRandomParameters(){
 	initializeRegions();
-	initializeWaterSources();
 	initializeCanals();
 	initializeConstraints();
 	initializeTime();
-	initializeWeather();
 }
 
-//setting the weather Queue that will store the weather events
-void AcequiaManager::initializeWeather()
-{
-	//
-//	std::queue<> 
-}
 //initializing the time settings
 void AcequiaManager::initializeTime()
 {
-	// std::random_device rd;
-	// std::mt19937 gen(rd());
-	// std::uniform_int_distribution<int> timeRandom(50,120);
-
 	hour = 0;
 	solvedTime=0;
-	//SimulationMax = 100;	
-	//random function  
-//	SimulationMax = timeRandom(gen);
 	isSolved = false;
 }
 
-void AcequiaManager::initializeRegions(){
-//METHOD A (use this first)
-//setting fixed values at execution time
-//students can read the AcequiaManager to view the initial values and build their logic based on this
-/*	
-		regions.push_back(new Region("North", 53.0, 49.5, 55, false, false,0,0));
-		regions.push_back(new Region("South", 40.0, 39, 45 ,true, false,0,0));
-		regions.push_back(new Region("East", 25, 26, 50, false, true,0,0));
-*/	
-
-//Method B (this works fine too, but students will not be able to see the random values until after they execute their program)
-//setting random initial values for each region waterlevels at execution time
-/*	
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<double> waterLevelRandom(0,100);
-	std::uniform_real_distribution<double> waterNeedRandom(10,100);
-	std::uniform_real_distribution<double> waterCapacityRandom(100,200);
-
-	this initialization produces random values at execution time
-		regions.push_back(new Region("North", waterLevelRandom(gen), waterNeedRandom(gen), waterCapacityRandom(gen), false, false,0,0));
-		regions.push_back(new Region("South", waterLevelRandom(gen), waterNeedRandom(gen), waterCapacityRandom(gen) ,true, false,0,0));
-		regions.push_back(new Region("East", waterLevelRandom(gen), waterNeedRandom(gen), waterCapacityRandom(gen), false, true,0,0));
-*/
-
-//Method C (still figuring this one out)
-//This option reads in random values for the region and assigns them to the respective region
-
-std::ifstream InputFile;
-InputFile.open("RandomValues.dat", std::ios::in);
-std::string line;
-int line_ct = 0;
-	while(!InputFile.eof())
-	{	
-		std::getline(InputFile, line);
-		std::string value;
-		std::string name;
-		double RegionWaterLevel;
-		double RegionWaterNeed;
-		double RegionWaterCapacity;
-		int ct =0;
-		if(line_ct == 0 || line_ct == 2)
-		{
-			line_ct++;
-			continue;
-		}
-		else if(line_ct == 1)
-		{
-			SimulationMax = stoi(line);
-			line_ct++;
-			continue;
-		}
-		std::stringstream data(line);
-		while(std::getline(data, value, ','))
-		{
-			switch(ct)
-			{
-					case 0:
-						name = value;
-						break;
-					case 1:
-						RegionWaterLevel = stoi(value);
-						break;
-					case 2:
-						RegionWaterNeed = stoi(value);
-						break;
-					case 3:
-						RegionWaterCapacity = stoi(value);
-						break;
-			}
-			ct++;
-		}
-		if(ct>0)
-		{
-			regions.push_back(new Region(name, RegionWaterLevel, RegionWaterNeed, RegionWaterCapacity, false,false, 0 ,0));
-		}
-		line_ct++;
-	}	
-InputFile.close();
-
-for(int i =0; i<regions.size();i++)
-{
-	if(regions[i]->waterLevel < regions[i]->waterNeed)
-	{
-		InitDisparity += (regions[i]->waterNeed - regions[i]->waterLevel);
-	}
+void AcequiaManager::initializeRegions() {
+      regions.push_back(new Region("North", 53.0, 49.5, 55,));
+      regions.push_back(new Region("South", 40.0, 39, 45));
+      regions.push_back(new Region("East", 25, 26, 50));
 }
-
-
-	/*Additional region considerations
-		regions.push_back(new Region("Northwest", waterLevel , waterNeed, waterCapacity,false , false))
-	*/
-}
-
-void AcequiaManager::initializeWaterSources(){
-	//Example water source
-
-		waterSources.push_back(new WaterSource("Rio Grande", WaterSourceType::RIVER, 100.0));
-		waterSources.push_back(new WaterSource("ABQ Underground Aquifer", WaterSourceType::UNDERGROUND, 200.0));
-		waterSources.push_back(new WaterSource("Elephant Butte Dam", WaterSourceType::DAM, 150.0));
-		waterSources.push_back(new WaterSource("Pecos", WaterSourceType::RIVER, 80));
-	/*Other water sources to consider:
-		waterSources.push_back(new WaterSource("San Juan", WaterSourceType::RIVER, 80));
-		waterSources.push_back(new WaterSource("Gila", WaterSourceType::RIVER, 30));
-		waterSources.push_back(new WaterSource("Chama", WaterSourceType::RIVER, 50));
-	*/
-
-	//connecting waterSources to regions
-		regions[0]->addWaterSource(waterSources[0]);
-		regions[1]->addWaterSource(waterSources[0]);
-		regions[0]->addWaterSource(waterSources[1]);
-		regions[1]->addWaterSource(waterSources[2]);
-		regions[0]->addWaterSource(waterSources[3]);
-		regions[2]->addWaterSource(waterSources[3]);
-
-}
-
 
 void AcequiaManager::initializeCanals(){
 	//Example Canals
-		canals.push_back(new Canal("Canal A", regions[0], regions[1], waterSources[0]));
-		canals.push_back(new Canal("Canal B", regions[1], regions[2], waterSources[2]));
-		canals.push_back(new Canal("Canal C", regions[0], regions[2], waterSources[3]));
-		canals.push_back(new Canal("Canal D", regions[2], regions[0], waterSources[2]));		
+		canals.push_back(new Canal("Canal A", regions[0], regions[1]);
+		canals.push_back(new Canal("Canal B", regions[1], regions[2]);
+		canals.push_back(new Canal("Canal C", regions[0], regions[2]);
+		canals.push_back(new Canal("Canal D", regions[2], regions[0]);		
 }
 
 void AcequiaManager::initializeConstraints(){
@@ -396,22 +213,8 @@ void AcequiaManager::evaluateSolution(){
 	std::cout<<"--------------------\n" <<std::endl;
 }
 
-
-//displaying the leaderboard for multiple users
-void AcequiaManager::displayLeaderboard() const{
-	std::cout<<"----------------\n";
-	std::cout<<"Leaderboard: \n";
-	for(const auto& entry: leaderboard){
-		std::cout<<entry.first <<":" <<entry.second <<"\n";
-	}
-}
-
 const std::vector<Region *> & AcequiaManager::getRegions() const{
 	return regions;
-}
-
-const std::vector<WaterSource*> &AcequiaManager::getWaterSources()const{
-	return waterSources;
 }
 
 const std::vector<Canal*> &AcequiaManager::getCanals() const{
