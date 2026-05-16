@@ -69,6 +69,7 @@ class AcequiaManager{
 		~AcequiaManager();	//destructor
 
 		void initializeRandomParameters();
+      void loadRandomParameters();
 		void displayState() const;
 		void evaluateSolution();
 //calculates any penalties during the simulation run

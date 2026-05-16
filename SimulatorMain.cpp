@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
  	manager.displayState();
  	//Evaluate the solution and display results
  	manager.evaluateSolution();
- 	manager.displayLeaderboard();
+ 	//manager.displayLeaderboard();
 	
 
 	return 0;
